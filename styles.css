@@ -1,0 +1,149 @@
+/* ======================================================= */
+/* 1. CSS Variables (Custom Properties) */
+/* ======================================================= */
+:root {
+    /* Color Palette */
+    --color-primary-dark: #6a0572;      /* Deep Purple 1 */
+    --color-primary-medium: #8b008b;    /* Deep Purple 2 (Background Gradient) */
+    --color-primary-light: #a020f0;     /* Purple 3 (Background Gradient) */
+    --color-accent: #ffcc00;            /* Bright Yellow (Button Base) */
+    --color-accent-hover: #ffe066;      /* Lighter Yellow (Button Hover) */
+    --color-text-light: #fff;           /* White Text */
+    --color-text-dark: #4a004a;         /* Dark Purple Text */
+    --color-overlay: rgba(0, 0, 0, 0.4); /* Semi-transparent Black */
+    --color-symbol-fade: rgba(255, 255, 255, 0.5); /* Faded White Symbol Color */
+
+    /* Typography */
+    --font-family-main: 'Montserrat', sans-serif;
+    --font-size-h1: 3.5em;
+    --font-size-p: 1.3em;
+    --font-size-button: 1.5em;
+
+    /* Spacing & Effects */
+    --spacing-padding-container: 40px 60px;
+    --border-radius-container: 15px;
+    --box-shadow-container: 0 10px 30px rgba(0, 0, 0, 0.3);
+    --button-padding: 15px 40px;
+}
+
+/* ======================================================= */
+/* 2. Basic Reset & Body Styling */
+/* ======================================================= */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-family-main);
+    overflow: hidden; 
+    /* Use the variables in the linear-gradient */
+    background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary-medium), var(--color-primary-light));
+    color: var(--color-text-light);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    text-align: center;
+    position: relative;
+}
+
+/* ======================================================= */
+/* 3. Welcome Container Styling */
+/* ======================================================= */
+.welcome-container {
+    background-color: var(--color-overlay);
+    padding: var(--spacing-padding-container);
+    border-radius: var(--border-radius-container);
+    box-shadow: var(--box-shadow-container);
+    max-width: 700px;
+    z-index: 10; 
+    position: relative;
+}
+
+h1 {
+    font-size: var(--font-size-h1);
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+p {
+    font-size: var(--font-size-p);
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+/* ======================================================= */
+/* 4. Start Button Styling */
+/* ======================================================= */
+.start-button {
+    display: inline-block;
+    background-color: var(--color-accent);
+    color: var(--color-text-dark);
+    padding: var(--button-padding);
+    border-radius: 50px;
+    text-decoration: none;
+    font-size: var(--font-size-button);
+    font-weight: bold;
+    transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.start-button:hover {
+    transform: translateY(-3px) scale(1.03); 
+    background-color: var(--color-accent-hover); 
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* ======================================================= */
+/* 5. Symbol Styling and Animation */
+/* ======================================================= */
+.symbol {
+    position: absolute;
+    font-size: 4em; 
+    opacity: 0.15; 
+    color: var(--color-symbol-fade); 
+    pointer-events: none; 
+    animation: float 15s infinite ease-in-out alternate; 
+}
+
+/* Individual symbol positioning and animation delays */
+.symbol:nth-child(1) { top: 10%; left: 5%; font-size: 3.5em; animation-delay: 0s; }
+.symbol:nth-child(2) { top: 30%; right: 10%; animation-delay: 2s; }
+.symbol:nth-child(3) { bottom: 20%; left: 15%; font-size: 4.5em; animation-delay: 4s; }
+.symbol:nth-child(4) { top: 50%; left: 40%; animation-delay: 6s; }
+.symbol:nth-child(5) { bottom: 5%; right: 25%; font-size: 5em; animation-delay: 8s; }
+.symbol:nth-child(6) { top: 20%; left: 60%; animation-delay: 10s; }
+.symbol:nth-child(7) { bottom: 40%; right: 5%; animation-delay: 12s; }
+.symbol:nth-child(8) { top: 70%; left: 25%; font-size: 3em; animation-delay: 1s; }
+.symbol:nth-child(9) { bottom: 10%; left: 70%; animation-delay: 3s; }
+.symbol:nth-child(10) { top: 5%; right: 45%; animation-delay: 5s; }
+
+/* Floating Animation Keyframes */
+@keyframes float {
+    0% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+}
+
+/* ======================================================= */
+/* 6. Responsive Adjustments */
+/* ======================================================= */
+@media (max-width: 768px) {
+    .welcome-container {
+        padding: 30px 40px;
+        max-width: 90%;
+    }
+    h1 {
+        font-size: 2.5em;
+    }
+    p {
+        font-size: 1em;
+    }
+    .start-button {
+        font-size: 1.2em;
+        padding: 12px 30px;
+    }
+    .symbol {
+        font-size: 2.5em; 
+    }
+}

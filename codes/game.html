@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Who Am I? - Card Match</title>
+    
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'solitaire-green': '#006400', 
+                        'primary-purple': '#8b008b',
+                        'accent-yellow': '#ffcc00',
+                        'card-back': '#003366', /* Dark Blue for card backs */
+                    },
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Global Reset: Important for removing unwanted white edges */
+        html, body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #137a4c; /* base color */
+            background-image: url('../assets/felt-texture.png'); /* your uploaded texture */
+            background-repeat: repeat;
+            background-size: 676px 676px; /* adjust for density */
+        }
+
+        /* NEW: Tap Pulse Animation for Prompt Hand */
+        @keyframes tap-pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.15); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .animate-tap-pulse {
+            animation: tap-pulse 1.2s infinite ease-in-out;
+        }
+        /* END NEW */
+
+        /* Base Card Styling */
+        .card {
+            width: 120px;
+            min-height: 160px; /* Ensure minimum size for aspect ratio */
+            max-width: 280px; /* NEW: Max width to prevent cards from getting too large */
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+            position: relative; 
+            cursor: pointer;
+        }
+
+        /* --- Riddle Card (The Draw Pile) --- */
+        #riddle-draw-area {
+            /* Use min/max to allow card to grow based on content */
+            position: relative;
+            width: 120px;
+            min-height: 160px;
+            max-width: 280px;
+            /* Ensures pseudo-elements stay contained */
+        }
+
+        /* NEW: Pseudo-elements for Stacked Card Appearance */
+        #riddle-draw-area::before, 
+        #riddle-draw-area::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            background-color: #003366; /* Dark Blue card back color */
+            border: 3px solid #ffcc00; /* Yellow border */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            z-index: 1; /* Place below the actual card */
+            transition: transform 0.6s;
+        }
+
+        /* Card 2: Slight offset and rotation */
+        #riddle-draw-area::before {
+            transform: translate(5px, 3px) rotateZ(3deg);
+            opacity: 0.8;
+            z-index: 2; /* Put it just below the active card */
+        }
+
+        /* Card 3: Larger offset and opposite rotation */
+        #riddle-draw-area::after {
+            transform: translate(-5px, 6px) rotateZ(-3deg);
+            opacity: 0.6;
+            z-index: 1; /* Put it at the bottom of the stack */
+        }
+        
+        /* Ensure the top card is the target for clicks/drops */
+        #riddle-card {
+            z-index: 3; 
+            position: relative;
+        }
+        
+        .riddle-card-face {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 10px;
+            font-weight: 600;
+            
+            /* FIX FOR DROP TARGET ISSUE: Allow pointer events but control which face gets them */
+            pointer-events: auto; 
+        }
+
+        /* Card Back (Facedown State) */
+        #riddle-card-back {
+            background-color: #003366; /* Dark Blue */
+            transform: rotateY(0deg);
+            z-index: 2;
+            color: white;
+            font-size: 1.2rem;
+            border: 3px solid #ffcc00;
+            /* When the card is flipped (not visible), DO NOT accept pointers/drops */
+            pointer-events: none;
+        }
+        
+        /* Card Front (Flipped/Riddle State) */
+        #riddle-card-front {
+            background-color: white;
+            border: 3px solid #8b008b; /* Purple */
+            transform: rotateY(180deg);
+            z-index: 1;
+            color: #333;
+            font-size: 0.9rem;
+            
+            /* NEW: Allow height/width to be determined by content, within max limits */
+            width: auto;
+            min-height: 160px;
+            
+            /* When the card is not flipped (not visible), DO NOT accept pointers/drops */
+            pointer-events: none;
+        }
+        
+        /* Container for the flip animation */
+        .card-flip-container {
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+        
+        .flipped {
+            transform: rotateY(180deg);
+            cursor: grab;
+        }
+        
+        /* When Flipped, swap pointer-events */
+        .flipped #riddle-card-back {
+            pointer-events: none; /* Back is hidden, so it's not a target */
+        }
+        .flipped #riddle-card-front {
+            pointer-events: auto; /* Front is visible, so it IS the target */
+        }
+        
+        /* --- Icon Cards (The Targets/Piles) --- */
+        .icon-card-target {
+            background-color: white;
+            border: 3px solid #8b008b; 
+            color: #8b008b;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.5; /* Faded when available */
+            cursor: default;
+            
+            /* VERY IMPORTANT: Make this the positioning context for the initials */
+            position: relative; 
+        }
+
+        /* --- Initial Positioning Styles --- */
+
+        .card-initial {
+            position: absolute;
+            font-size: 1rem; 
+            font-weight: 900; 
+            color: #8b008b; 
+            opacity: 0.8;
+            line-height: 1; /* Compact the vertical space */
+        }
+
+        .top-left-initial {
+            top: 5px; 
+            left: 8px; 
+        }
+
+        .bottom-right-initial {
+            bottom: 5px; 
+            right: 8px; 
+        }
+        
+        /* Solitaire-style stacking visualization */
+        .card-stack > div {
+            margin-top: -140px; /* Overlap cards */
+        }
+        .card-stack > div:first-child {
+            margin-top: 0;
+        }
+        
+        /* Dragging and Dropping Styles */
+        .dragging {
+            opacity: 0.7 !important;
+            transform: scale(1.05);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.6);
+            cursor: grabbing;
+        }
+        .drag-over {
+            transform: scale(1.08);
+            border-color: #38bdf8; /* Sky blue ring */
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.8);
+        }
+
+        /* Matched Card (Riddle card disappears, icon card is revealed) */
+        .matched-reveal {
+            opacity: 1; /* Fully visible */
+            border-color: #10b981; /* Green border for correct match */
+            box-shadow: 0 0 10px #10b981;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center pt-8 pb-8">
+    
+    <header class="w-full max-w-6xl flex justify-between items-center p-4 bg-black/30 backdrop-blur-sm rounded-xl shadow-lg mb-8">
+        <div class="flex items-center gap-6">
+            <h1 class="text-3xl font-extrabold text-white tracking-wider">Card Match</h1>
+            <span class="text-accent-yellow text-2xl font-bold" id="score-display">Score: 0</span>
+
+            <div id="timer-display" class="text-accent-yellow text-2xl font-bold flex items-center gap-2">
+                <i class="fas fa-clock"></i>
+                <span id="timer-countdown">20</span>
+            </div>
+            </div>
+
+        <button id="restart-button" class="bg-primary-purple text-white px-4 py-2 rounded-lg font-bold hover:bg-opacity-90 transition shadow-md">
+            Restart Game
+        </button>
+    </header>
+
+    <div id="icon-piles-container" class="w-full max-w-6xl flex justify-center gap-4 mb-12 p-4">
+    </div>
+    
+    <main class="flex flex-col items-center">
+        <h2 class="text-white text-2xl font-bold mb-6">Current Riddle Card</h2>
+        
+        <div id="riddle-draw-area">
+            <div id="tap-prompt-hand" class="absolute hidden text-accent-yellow text-4xl" 
+                 style="top: -20px; right: -20px; z-index: 10;">
+                <i class="fas fa-hand-pointer animate-tap-pulse"></i>
+            </div>
+            <div id="riddle-card" class="card card-flip-container" draggable="false">
+                
+                <div id="riddle-card-back" class="riddle-card-face">
+                    <p>Tap to Reveal Riddle</p>
+                </div>
+                
+                <div id="riddle-card-front" class="riddle-card-face">
+                    <p id="riddle-text">Riddle loads here...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="status-message" class="mt-8 h-10 text-xl font-bold text-accent-yellow transition duration-300 text-center">
+            Tap the card to start!
+        </div>
+    </main>
+    
+    <div id="end-game-modal" class="hidden fixed inset-0 flex items-center justify-center bg-black/70 z-20 p-4">
+        <div class="end-message p-8 rounded-xl shadow-2xl text-center max-w-md w-full bg-white">
+            <h2 class="text-3xl font-black text-primary-purple mb-4">Game Over!</h2>
+            <p id="final-score-text" class="text-xl text-gray-700 mb-6"></p>
+            <button id="modal-restart-button" class="bg-accent-yellow text-primary-purple px-6 py-3 rounded-full font-bold text-lg hover:opacity-80 transition shadow-lg">
+                Play Again
+            </button>
+        </div>
+    </div>
+
+
+    <script src="game.js"></script>
+</body>
+</html>
