@@ -37,6 +37,7 @@ const modalRestartButtonEl = document.getElementById('modal-restart-button');
 const timerDisplayEl = document.getElementById('timer-display'); // New element reference
 // NEW: Hand Prompt Element Reference
 const tapPromptHandEl = document.getElementById('tap-prompt-hand');
+const riddleDrawAreaEl = document.getElementById('riddle-draw-area');
 
 
 // --- Timer Functions ---
@@ -380,10 +381,10 @@ const startGame = () => {
 // --- Attach Event Listeners ---
 
 // Riddle Card Listeners (Tap-to-flip, Drop Target)
-riddleCardEl.addEventListener('click', handleRiddleCardClick);
-riddleCardEl.addEventListener('dragover', handleRiddleDragOver);
-riddleCardEl.addEventListener('dragleave', handleRiddleDragLeave);
-riddleCardEl.addEventListener('drop', handleRiddleDrop);
+riddleDrawAreaEl.addEventListener('click', handleRiddleCardClick);
+riddleDrawAreaEl.addEventListener('dragover', handleRiddleDragOver);
+riddleDrawAreaEl.addEventListener('dragleave', handleRiddleDragLeave);
+riddleDrawAreaEl.addEventListener('drop', handleRiddleDrop);
 
 // Restart Buttons
 restartButtonEl.addEventListener('click', startGame);
